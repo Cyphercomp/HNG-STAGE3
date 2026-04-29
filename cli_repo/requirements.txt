@@ -1,0 +1,16 @@
+# Command Line Interface Framework
+click>=8.1.0
+
+# Rich UI Components
+# For structured tables, loaders, and feedback [cite: 237]
+rich>=13.5.0
+
+# Network & Authentication
+# Handles the exchange of code_verifier and capture of callbacks [cite: 60, 70]
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Testing & Linting (CI/CD Requirements) [cite: 255]
+pytest>=7.4.0
+flake8>=6.1.0
+black>=23.7.0
