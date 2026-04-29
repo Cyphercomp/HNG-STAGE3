@@ -195,9 +195,9 @@ def get_env_variable(var_name):
         # This will show up in your Railway Deploy Logs
         return None 
 
-GITHUB_CLIENT_ID = 'Ov23lisdKc9UuxcnkzuH'  #get_env_variable('GITHUB_CLIENT_ID')
-GITHUB_CLIENT_SECRET = 'af947186e04f4459be8a557f3f3fc6de82cbdb36' #get_env_variable('GITHUB_CLIENT_SECRET')
-GITHUB_REDIRECT_URI = 'https://hng-stage3-production.up.railway.app/api/auth/github/callback'#get_env_variable('GITHUB_REDIRECT_URI')
+GITHUB_CLIENT_ID = get_env_variable('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = get_env_variable('GITHUB_CLIENT_SECRET')
+GITHUB_REDIRECT_URI = get_env_variable('GITHUB_REDIRECT_URI')
 
 # Safety Check: If these are missing, the server will log exactly which one
 if not GITHUB_CLIENT_ID:
