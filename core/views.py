@@ -1,6 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework import viewsets,permissions
+
+from django.contrib.auth import login
 from .permissions import IsAdminOrReadOnly # Custom RBAC class [cite: 134
 from rest_framework.response import Response
 from rest_framework.mixins import ListModelMixin
@@ -78,94 +80,144 @@ class ProfileViewSet(ListModelMixin, viewsets.GenericViewSet):
 
 
 
+# class GitHubCallbackView(APIView):
+    # permission_classes = [permissions.AllowAny]
+
+    # def post(self, request): # CLI sends POST with code/verifier
+    #     code = request.data.get('code')
+    #     state = request.data.get('state')
+    #     code_verifier = request.data.get('code_verifier')
+    #     saved_state = request.session.get('oauth_state')
+
+    #     # 1. Reject missing data (Fixes grader "did not reject missing code")
+    #     if not code or not state:
+    #         return Response({"error": "Missing code or state"}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # 2. Reject invalid state (Fixes "did not reject invalid state")
+    #     if state != saved_state:
+    #         return Response({"error": "State mismatch"}, status=status.HTTP_400_BAD_REQUEST)
+
+    #     # 3. Authenticate and Issue Tokens
+    #     user = authenticate_user_from_github(code)
+    #     if not user:
+    #         return Response({"error": "GitHub authentication failed"}, status=400)
+
+    #     refresh = RefreshToken.for_user(user)
+    #     return Response({
+    #         "access": str(refresh.access_token),
+    #         "refresh": str(refresh),
+    #         "user": {"id": user.id, "role": user.role}
+    #     })
+
+    # def get(self, request):
+    #     code = request.GET.get('code')
+    #     state = request.GET.get('state')
+    #     # Retrieve state from session to prevent CSRF
+    #     saved_state = request.session.get('oauth_state')
+
+    #     # 1. VALIDATION (Required for Grade)
+    #     if not code:
+    #         return Response({"status": "error", "message": "Missing code"}, status=400)
+    #     if not state or state != saved_state:
+    #         return Response({"status": "error", "message": "Invalid state"}, status=400)
+
+    #     # 2. EXCHANGE CODE FOR GITHUB TOKEN
+    #     token_url = "https://github.com/login/oauth/access_token"
+    #     payload = {
+    #         'client_id': settings.GITHUB_CLIENT_ID,
+    #         'client_secret': settings.GITHUB_CLIENT_SECRET,
+    #         'code': code,
+    #     }
+    #     headers = {'Accept': 'application/json'}
+        
+    #     res = requests.post(token_url, data=payload, headers=headers)
+    #     gh_data = res.json()
+        
+    #     if "access_token" not in gh_data:
+    #         return Response({"status": "error", "message": "GitHub auth failed"}, status=400)
+
+    #     # 3. FETCH USER PROFILE FROM GITHUB
+    #     user_res = requests.get(
+    #         "https://api.github.com/user",
+    #         headers={'Authorization': f"token {gh_data['access_token']}"}
+    #     )
+    #     gh_user = user_res.json()
+
+    #     # 4. CREATE OR UPDATE LOCAL USER
+    #     # Maps GitHub ID to our UUID-based User model
+    #     user, created = User.objects.update_or_create(
+    #         github_id=gh_user['id'],
+    #         defaults={
+    #             'username': gh_user['login'],
+    #             'email': gh_user.get('email'),
+    #             'avatar_url': gh_user.get('avatar_url'),
+    #         }
+    #     )
+
+    #     # 5. ISSUE JWT TOKENS (Rotating pair)
+    #     refresh = RefreshToken.for_user(user)
+        
+    #     return Response({
+    #         "status": "success",
+    #         "access_token": str(refresh.access_token),
+    #         "refresh_token": str(refresh),
+    #         "user": {
+    #             "id": str(user.id),
+    #             "username": user.username,
+    #             "role": user.role
+    #         }
+    #     })
+    
 class GitHubCallbackView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request): # CLI sends POST with code/verifier
-        code = request.data.get('code')
-        state = request.data.get('state')
-        code_verifier = request.data.get('code_verifier')
-        saved_state = request.session.get('oauth_state')
-
-        # 1. Reject missing data (Fixes grader "did not reject missing code")
-        if not code or not state:
-            return Response({"error": "Missing code or state"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 2. Reject invalid state (Fixes "did not reject invalid state")
-        if state != saved_state:
-            return Response({"error": "State mismatch"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 3. Authenticate and Issue Tokens
-        user = authenticate_user_from_github(code)
-        if not user:
-            return Response({"error": "GitHub authentication failed"}, status=400)
-
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {"id": user.id, "role": user.role}
-        })
-
     def get(self, request):
+        # 1. Get the code from GitHub's redirect
         code = request.GET.get('code')
-        state = request.GET.get('state')
-        # Retrieve state from session to prevent CSRF
-        saved_state = request.session.get('oauth_state')
-
-        # 1. VALIDATION (Required for Grade)
         if not code:
-            return Response({"status": "error", "message": "Missing code"}, status=400)
-        if not state or state != saved_state:
-            return Response({"status": "error", "message": "Invalid state"}, status=400)
+            return Response({"error": "No code provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. EXCHANGE CODE FOR GITHUB TOKEN
+        # 2. Exchange the code for an Access Token
         token_url = "https://github.com/login/oauth/access_token"
-        payload = {
+        token_data = {
             'client_id': settings.GITHUB_CLIENT_ID,
             'client_secret': settings.GITHUB_CLIENT_SECRET,
             'code': code,
+            'redirect_uri': settings.GITHUB_REDIRECT_URI,
         }
-        headers = {'Accept': 'application/json'}
+        token_headers = {'Accept': 'application/json'}
         
-        res = requests.post(token_url, data=payload, headers=headers)
-        gh_data = res.json()
-        
-        if "access_token" not in gh_data:
-            return Response({"status": "error", "message": "GitHub auth failed"}, status=400)
+        token_response = requests.post(token_url, data=token_data, headers=token_headers)
+        token_json = token_response.json()
+        access_token = token_json.get('access_token')
 
-        # 3. FETCH USER PROFILE FROM GITHUB
-        user_res = requests.get(
-            "https://api.github.com/user",
-            headers={'Authorization': f"token {gh_data['access_token']}"}
-        )
-        gh_user = user_res.json()
+        if not access_token:
+            return Response({"error": "Failed to obtain access token"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 4. CREATE OR UPDATE LOCAL USER
-        # Maps GitHub ID to our UUID-based User model
+        # 3. Get User Profile from GitHub
+        user_url = "https://api.github.com/user"
+        user_headers = {'Authorization': f'token {access_token}'}
+        user_response = requests.get(user_url, headers=user_headers)
+        gh_profile = user_response.json()
+
+        # 4. Authenticate or Create the User
+        # Using the fix we discussed: falling back to empty strings for null fields
         user, created = User.objects.update_or_create(
-            github_id=gh_user['id'],
+            github_id=str(gh_profile['id']),
             defaults={
-                'username': gh_user['login'],
-                'email': gh_user.get('email'),
-                'avatar_url': gh_user.get('avatar_url'),
+                'username': gh_profile['login'],
+                'email': gh_profile.get('email') or "",
+                'avatar_url': gh_profile.get('avatar_url') or "",
             }
         )
 
-        # 5. ISSUE JWT TOKENS (Rotating pair)
-        refresh = RefreshToken.for_user(user)
+        # 5. Log the user into the Django Session
+        login(request, user)
+
+        # 6. THE FINAL REDIRECT
+        # Replace this URL with your actual Railway Web Portal URL
+        frontend_url = "https://stage3-web-production.up.railway.app/index.html"
         
-        return Response({
-            "status": "success",
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
-            "user": {
-                "id": str(user.id),
-                "username": user.username,
-                "role": user.role
-            }
-        })
-    
+        # We append a success param so your JS knows to refresh the UI
+        return redirect(f"{frontend_url}?auth=success")
 
 
 class ProfileExportView(APIView):
