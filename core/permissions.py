@@ -8,7 +8,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """
     def has_permission(self, request, view):
         # 1. User must be authenticated and active
-        if not request.user or not request.user.is_authenticated or not request.user.is_active:
+        if not request.user or not request.user.is_authenticated:
             return False
 
         # 2. Allow GET, HEAD, OPTIONS for all roles
