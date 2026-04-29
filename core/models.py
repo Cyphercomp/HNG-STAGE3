@@ -39,7 +39,7 @@ class User(AbstractUser):
     # Use UUID v7 logic as required by TRD
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     github_id = models.CharField(max_length=255, unique=True, null=True)
-    email = models.EmailField(unique=False, null=True, blank=True)
+    email = models.EmailField( null=True, blank=True)
     role = models.CharField(
         max_length=10, 
         choices=[('admin', 'Admin'), ('analyst', 'Analyst')], 

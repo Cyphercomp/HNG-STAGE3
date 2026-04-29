@@ -106,25 +106,25 @@ WSGI_APPLICATION = 'insighta.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
-        conn_max_age=600
-    )
-}
-
 # DATABASES = {
-#     'default': {
-#         #'ENGINE': 'django.db.backends.sqlite3',
-#         #'NAME': BASE_DIR / 'db.sqlite3',
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'HNG',
-#         'USER': 'postgres',
-#         'PASSWORD': '13ghost',
-#         'HOST': 'localhost',  # Or the IP address of your DB server
-#         'PORT': '5432',       # Default PostgreSQL port
-#     }
-# }
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
+#         conn_max_age=600
+#     )
+#}
+
+DATABASES = {
+    'default': {
+        #'ENGINE': 'django.db.backends.sqlite3',
+        #'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'HNG',
+        'USER': 'postgres',
+        'PASSWORD': '13ghost',
+        'HOST': 'localhost',  # Or the IP address of your DB server
+        'PORT': '5432',       # Default PostgreSQL port
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -191,9 +191,9 @@ def get_env_variable(var_name):
         # This will show up in your Railway Deploy Logs
         return None 
 
-GITHUB_CLIENT_ID = get_env_variable('GITHUB_CLIENT_ID')
-GITHUB_CLIENT_SECRET = get_env_variable('GITHUB_CLIENT_SECRET')
-GITHUB_REDIRECT_URI = get_env_variable('GITHUB_REDIRECT_URI')
+GITHUB_CLIENT_ID = 'Ov23lisdKc9UuxcnkzuH'  #get_env_variable('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = 'af947186e04f4459be8a557f3f3fc6de82cbdb36' #get_env_variable('GITHUB_CLIENT_SECRET')
+GITHUB_REDIRECT_URI = 'https://hng-stage3-production.up.railway.app/api/auth/github/callback'#get_env_variable('GITHUB_REDIRECT_URI')
 
 # Safety Check: If these are missing, the server will log exactly which one
 if not GITHUB_CLIENT_ID:

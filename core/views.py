@@ -272,15 +272,25 @@ def authenticate_user_from_github(code):
 
     # 3. Create or Update the Local User (RBAC handling)
     # We use github_id as the unique identifier to avoid username conflicts
+    # user, created = User.objects.update_or_create(
+    #     github_id=gh_profile['id'],
+    #     defaults={
+    #         'username': gh_profile['login'],
+    #         'email': gh_profile.get('email'),
+    #         'avatar_url': gh_profile.get('avatar_url'),
+    #         # 'role' defaults to 'analyst' in the model definition
+    #     }
+    # )
+
     user, created = User.objects.update_or_create(
-        github_id=gh_profile['id'],
-        defaults={
-            'username': gh_profile['login'],
-            'email': gh_profile.get('email'),
-            'avatar_url': gh_profile.get('avatar_url'),
-            # 'role' defaults to 'analyst' in the model definition
-        }
-    )
+    github_id=gh_profile['id'],
+    defaults={
+        'username': gh_profile['login'],
+        # Use .get() and fallback to an empty string or a generated string
+        'email': gh_profile.get('email') or f"{gh_profile['login']}@github.user",
+        'avatar_url': gh_profile.get('avatar_url'),
+    }
+)
     
     return user
 
