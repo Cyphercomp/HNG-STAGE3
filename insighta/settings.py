@@ -162,9 +162,39 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'core.User'
+
+
+# core/settings.py
+
+# GitHub OAuth Credentials
+# GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID', GITHUB_CLIENT_ID)
+# GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', GITHUB_CLIENT_SECRET)
+
+# # This must match what you registered in the GitHub Developer Settings
+# GITHUB_REDIRECT_URI = os.getenv('GITHUB_REDIRECT_URI', GITHUB_REDIRECT_URI)
+
+# core/settings.py
+import os
+from django.core.exceptions import ImproperlyConfigured
+
+def get_env_variable(var_name):
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        # This will show up in your Railway Deploy Logs
+        return None 
+
+GITHUB_CLIENT_ID = get_env_variable('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = get_env_variable('GITHUB_CLIENT_SECRET')
+GITHUB_REDIRECT_URI = get_env_variable('GITHUB_REDIRECT_URI')
+
+# Safety Check: If these are missing, the server will log exactly which one
+if not GITHUB_CLIENT_ID:
+    print("⚠️ WARNING: GITHUB_CLIENT_ID is not set in environment variables!")

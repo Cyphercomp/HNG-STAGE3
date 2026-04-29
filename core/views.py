@@ -232,10 +232,10 @@ class GitHubLoginView(APIView):
 
         # 3. Construct GitHub Authorization URL
         params = {
-            'client_id': settings.GITHUB_CLIENT_ID,
+            'client_id': settings.GITHUB_CLIENT_ID, # Correct usage
             'redirect_uri': settings.GITHUB_REDIRECT_URI,
             'state': state,
-            'scope': 'user:email', # Request email access
+            'scope': 'user:email',
         }
         
         github_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
