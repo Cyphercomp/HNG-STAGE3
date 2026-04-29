@@ -1,8 +1,7 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-from core.views import ProfileViewSet, ProfileExportView, GitHubLoginView, GitHubCallbackView, LogoutView
+from core.views import ProfileViewSet, ProfileExportView, GitHubLoginView, GitHubCallbackView #, LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
-from core.views import GitHubLoginView, GitHubCallbackView, LogoutView
 
 router = DefaultRouter()
 router.register(r'profiles', ProfileViewSet, basename='profile')
@@ -18,9 +17,9 @@ urlpatterns = [
     
     # Token Management (Must be POST)
     path('auth/refresh', TokenRefreshView.as_view(), name='token-refresh'),
-    path('auth/logout', LogoutView.as_view(), name='logout'),
+    #path('auth/logout', LogoutView.as_view(), name='logout'),
     path('profiles/export', ProfileExportView.as_view(), name='profile-export'),
     
     # Profiles API
-    path('', include('router.urls')), 
-]
+    #path('', include('router.urls')), 
+] + router.urls
