@@ -59,16 +59,20 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS':(
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
-    'DEFAULT_THROTTLE_RATES': {
-        'user': '60/minute', # General endpoints 
-        'anon': '10/minute', # Auth endpoints 
-    },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', # Secure by default
+    ],
     'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/minute',  # Required for auth endpoints
+        'user': '60/minute',  # Required for profile endpoints
+    }
 }
 
 SIMPLE_JWT = {
@@ -76,6 +80,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(minutes=5),
     'ROTATE_REFRESH_TOKENS': True, # Invalidate on use [cite: 105]
     'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 ROOT_URLCONF = 'insighta.urls'

@@ -1,10 +1,26 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from core.views import ProfileViewSet
+from rest_framework_simplejwt.views import TokenRefreshView
+from core.views import GitHubLoginView, GitHubCallbackView, LogoutView
 
 router = DefaultRouter()
 router.register(r'profiles', ProfileViewSet, basename='profile')
 
+# urlpatterns = [
+#     path('', include(router.urls)),
+#     ]
+
 urlpatterns = [
-    path('', include(router.urls)),
-    ]
+    # OAuth flow
+    path('auth/github', GitHubLoginView.as_view(), name='github-login'),
+    path('auth/github/callback', GitHubCallbackView.as_view(), name='github-callback'),
+    
+    # Token Management (Must be POST)
+    path('auth/refresh', TokenRefreshView.as_view(), name='token-refresh'),
+    path('auth/logout', LogoutView.as_view(), name='logout'),
+    path('profiles/export', ProfileExportView.as_view(), name='profile-export'),
+    
+    # Profiles API
+    path('', include('router.urls')), 
+]
