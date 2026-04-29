@@ -56,3 +56,5 @@ class User(AbstractUser):
         related_name="insighta_user_permissions",
         blank=True
     )
+    avatar_url = models.URLField(max_length=500, null=True, blank=True)
+    
