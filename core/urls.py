@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-from core.views import ProfileViewSet
+from core.views import ProfileViewSet, ProfileExportView, GitHubLoginView, GitHubCallbackView, LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 from core.views import GitHubLoginView, GitHubCallbackView, LogoutView
 

@@ -21,6 +21,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.models import User
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.middleware.csrf import get_token
+from django.http import JsonResponse
+import secrets
+from urllib.parse import urlencode
 
 
 # Create your views here.
@@ -71,28 +75,6 @@ class ProfileViewSet(ListModelMixin, viewsets.GenericViewSet):
         return Response(serializer.data)
 # Create your views here.
 # views_profiles.py
-
-
-class ProfileExportView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        response = HttpResponse(content_type='text/csv') # [cite: 206]
-        response['Content-Disposition'] = f'attachment; filename="profiles_{timestamp}.csv"' # [cite: 208]
-
-        writer = csv.writer(response)
-        # Required Column Order [cite: 209, 210]
-        writer.writerow(['id', 'name', 'gender', 'gender_probability', 'age', 
-                         'age_group', 'country_id', 'country_name', 
-                         'country_probability', 'created_at'])
-
-        profiles = ProfileFilter(request.GET, queryset=Profile.objects.all()).qs
-        for p in profiles:
-            writer.writerow([p.id, p.name, p.gender, p.gender_probability, p.age, 
-                             p.age_group, p.country_id, p.country_name, 
-                             p.country_probability, p.created_at])
-        return response
 
 
 
@@ -203,4 +185,108 @@ class ProfileExportView(APIView):
                 p.created_at.strftime("%Y-%m-%d %H:%M:%S")
             ])
 
+        return response
+# authentication/views.py
+
+
+class GitHubLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        # 1. Generate 'state' for security (Prevents request forgery)
+        state = secrets.token_urlsafe(16)
+        
+        # 2. Store state and code_challenge in the session for the callback to verify
+        request.session['oauth_state'] = state
+        
+        # If the CLI sent a PKCE challenge, save it to verify the verifier later
+        code_challenge = request.GET.get('code_challenge')
+        if code_challenge:
+            request.session['code_challenge'] = code_challenge
+
+        # 3. Construct GitHub Authorization URL
+        params = {
+            'client_id': settings.GITHUB_CLIENT_ID,
+            'redirect_uri': settings.GITHUB_REDIRECT_URI,
+            'state': state,
+            'scope': 'user:email', # Request email access
+        }
+        
+        github_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
+        
+        # 4. Redirect the user's browser to GitHub
+        return redirect(github_url)
+
+def authenticate_user_from_github(code):
+    """
+    Exchanges GitHub code for user data and syncs with the local database.
+    """
+    # 1. Exchange the code for a GitHub Access Token
+    token_url = "https://github.com/login/oauth/access_token"
+    token_data = {
+        'client_id': settings.GITHUB_CLIENT_ID,
+        'client_secret': settings.GITHUB_CLIENT_SECRET,
+        'code': code,
+    }
+    token_headers = {'Accept': 'application/json'}
+    
+    token_res = requests.post(token_url, data=token_data, headers=token_headers)
+    token_res_json = token_res.json()
+    
+    github_access_token = token_res_json.get('access_token')
+    if not github_access_token:
+        return None
+
+    # 2. Use the token to fetch the GitHub User Profile
+    user_url = "https://api.github.com/user"
+    user_headers = {'Authorization': f"token {github_access_token}"}
+    
+    user_res = requests.get(user_url, headers=user_headers)
+    gh_profile = user_res.json()
+
+    # 3. Create or Update the Local User (RBAC handling)
+    # We use github_id as the unique identifier to avoid username conflicts
+    user, created = User.objects.update_or_create(
+        github_id=gh_profile['id'],
+        defaults={
+            'username': gh_profile['login'],
+            'email': gh_profile.get('email'),
+            'avatar_url': gh_profile.get('avatar_url'),
+            # 'role' defaults to 'analyst' in the model definition
+        }
+    )
+    
+    return user
+
+class WebGitHubCallbackView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, code):
+        # ... (Perform the same GitHub code exchange as the CLI) ...
+        
+        user = authenticate_user_from_github(code)
+        refresh = RefreshToken.for_user(user)
+
+        response = JsonResponse({
+            "status": "success",
+            "user": {"username": user.username, "role": user.role}
+        })
+
+        # Set HTTP-only cookies for security
+        response.set_cookie(
+            'access_token', 
+            str(refresh.access_token),
+            httponly=True, 
+            secure=True, # Ensure HTTPS in production
+            samesite='Lax',
+            max_age=180 # 3 minutes
+        )
+        response.set_cookie(
+            'refresh_token', 
+            str(refresh),
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+            max_age=300 # 5 minutes
+        )
         return response

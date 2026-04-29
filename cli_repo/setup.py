@@ -1,3 +1,4 @@
+# setup.py (Root of cli-repo)
 from setuptools import setup, find_packages
 
 setup(
@@ -6,12 +7,12 @@ setup(
     packages=find_packages(),
     install_requires=[
         'requests',
-        'rich',
         'click',
+        'rich',
     ],
     entry_points={
         'console_scripts': [
-            'insighta=cli_tool.main:cli', # This enables 'insighta' globally [cite: 218]
+            'insighta=cli.commands:cli', # Points to the 'cli' group in commands.py
         ],
     },
 )
