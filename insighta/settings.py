@@ -110,11 +110,17 @@ WSGI_APPLICATION = 'insighta.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=os.environ.get('DATABASE_URL'),
+#         conn_max_age=600
+#     )
+# }
+
+db_url = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_PUBLIC_URL')
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
-        conn_max_age=600
-    )
+    'default': dj_database_url.config(default=db_url)
 }
 
 # DATABASES = {
