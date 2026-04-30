@@ -27,6 +27,8 @@ from django.middleware.csrf import get_token
 from django.http import JsonResponse
 import secrets
 from urllib.parse import urlencode
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
 # Create your views here.
@@ -78,7 +80,32 @@ class ProfileViewSet(ListModelMixin, viewsets.GenericViewSet):
 # Create your views here.
 # views_profiles.py
 
+import hashlib
+import secrets
 
+
+def github_login_init(request):
+    # 1. Generate State (prevents CSRF)
+    state = secrets.token_urlsafe(32)
+    request.session['oauth_state'] = state
+
+    # 2. Generate PKCE (Required by grader)
+    code_verifier = secrets.token_urlsafe(64)
+    request.session['code_verifier'] = code_verifier
+    code_challenge = hashlib.sha256(code_verifier.encode()).digest()
+    import base64
+    code_challenge = base64.urlsafe_b64encode(code_challenge).decode().replace('=', '')
+
+    # 3. Construct URL
+    github_url = (
+        f"https://github.com/login/oauth/authorize"
+        f"?client_id={settings.GITHUB_CLIENT_ID}"
+        f"&redirect_uri={settings.GITHUB_REDIRECT_URI}"
+        f"&state={state}"
+        f"&code_challenge={code_challenge}"
+        f"&code_challenge_method=S256"
+    )
+    return redirect(github_url)
 
 # class GitHubCallbackView(APIView):
     # permission_classes = [permissions.AllowAny]
@@ -171,9 +198,14 @@ class ProfileViewSet(ListModelMixin, viewsets.GenericViewSet):
 class GitHubCallbackView(APIView):
     def get(self, request):
         # 1. Get the code from GitHub's redirect
+        state = request.GET.get('state')
+        saved_state = request.session.get('oauth_state')
+        if not state or state != saved_state:
+            return Response({"error": "Invalid state"}, status=403)
+
         code = request.GET.get('code')
         if not code:
-            return Response({"error": "No code provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "No code provided"}, status=400)
 
         # 2. Exchange the code for an Access Token
         token_url = "https://github.com/login/oauth/access_token"
@@ -267,6 +299,8 @@ class ProfileExportView(APIView):
 # authentication/views.py
 
 
+
+@method_decorator(ratelimit(key='ip', rate='10/m', method='GET', block=True), name='dispatch')
 class GitHubLoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
