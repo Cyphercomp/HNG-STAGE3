@@ -19,7 +19,5 @@ urlpatterns = [
     path('auth/refresh', TokenRefreshView.as_view(), name='token-refresh'),
     #path('auth/logout', LogoutView.as_view(), name='logout'),
     path('profiles/export', ProfileExportView.as_view(), name='profile-export'),
-    
-    # Profiles API
-    #path('', include('router.urls')), 
-] + router.urls
+    path('api/', include(router.urls)), 
+] #+ router.urls
