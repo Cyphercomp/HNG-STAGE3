@@ -50,9 +50,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -202,3 +202,10 @@ GITHUB_REDIRECT_URI = get_env_variable('GITHUB_REDIRECT_URI')
 # Safety Check: If these are missing, the server will log exactly which one
 if not GITHUB_CLIENT_ID:
     print("⚠️ WARNING: GITHUB_CLIENT_ID is not set in environment variables!")
+
+# Force cookies to be secure and hidden from client-side JS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True  # Required since Railway uses HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax' 
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
