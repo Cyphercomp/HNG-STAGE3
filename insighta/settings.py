@@ -119,8 +119,6 @@ DATABASES = {
 
 # DATABASES = {
 #     'default': {
-#         #'ENGINE': 'django.db.backends.sqlite3',
-#         #'NAME': BASE_DIR / 'db.sqlite3',
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'HNG',
 #         'USER': 'postgres',
@@ -195,9 +193,9 @@ def get_env_variable(var_name):
         # This will show up in your Railway Deploy Logs
         return None 
 
-GITHUB_CLIENT_ID = get_env_variable('GITHUB_CLIENT_ID')
-GITHUB_CLIENT_SECRET = get_env_variable('GITHUB_CLIENT_SECRET')
-GITHUB_REDIRECT_URI = get_env_variable('GITHUB_REDIRECT_URI')
+GITHUB_CLIENT_ID =  'Ov23lisdKc9UuxcnkzuH' #get_env_variable('GITHUB_CLIENT_ID')
+GITHUB_CLIENT_SECRET = '09fbfbc640d68c5fb7eb1cee15eecfd51064103b' #get_env_variable('GITHUB_CLIENT_SECRET')
+GITHUB_REDIRECT_URI = 'https://hng-stage3-production.up.railway.app/auth/github/callback' #get_env_variable('GITHUB_REDIRECT_URI')
 
 # Safety Check: If these are missing, the server will log exactly which one
 if not GITHUB_CLIENT_ID:
