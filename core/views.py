@@ -8,7 +8,7 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework.decorators import action
 from rest_framework import status
 from .models import Profile
-from .serializer import ProfileSerializer
+from .serializer import ProfileSerializer, UserSerializer
 from .filters import ProfileFilter, CustomOrderingFilter
 from .pagination import ProfilePagination
 import csv
@@ -30,6 +30,7 @@ from urllib.parse import urlencode
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 import os
+import hashlib
 
 
 # Create your views here.
@@ -81,7 +82,14 @@ class ProfileViewSet(ListModelMixin, viewsets.GenericViewSet):
 # Create your views here.
 # views_profiles.py
 
-import hashlib
+
+
+class UserMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 
 def github_login_init(request):

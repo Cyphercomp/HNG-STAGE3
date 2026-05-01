@@ -12,8 +12,8 @@ router.register(r'profiles', ProfileViewSet, basename='profile')
 
 urlpatterns = [
     # OAuth flow
-    #path('auth/github', GitHubLoginView.as_view(), name='github-login'),
-    path('auth/github', github_login_init, name='github-login'),
+    path('auth/github', GitHubLoginView.as_view(), name='github-login'),
+    #path('auth/github', github_login_init, name='github-login'),
     path('auth/github/callback', GitHubCallbackView.as_view(), name='github-callback'),
     
     # Token Management (Must be POST)
