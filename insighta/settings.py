@@ -117,22 +117,22 @@ WSGI_APPLICATION = 'insighta.wsgi.application'
 #     )
 # }
 
-# db_url = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_PUBLIC_URL')
-
-# DATABASES = {
-#     'default': dj_database_url.config(default=db_url)
-# }
+db_url = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_PUBLIC_URL')
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'HNG',
-        'USER': 'postgres',
-        'PASSWORD': '13ghost',
-        'HOST': 'localhost',  # Or the IP address of your DB server
-        'PORT': '5432',       # Default PostgreSQL port
-    }
+    'default': dj_database_url.config(default=db_url)
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'HNG',
+#         'USER': 'postgres',
+#         'PASSWORD': '13ghost',
+#         'HOST': 'localhost',  # Or the IP address of your DB server
+#         'PORT': '5432',       # Default PostgreSQL port
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
