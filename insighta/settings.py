@@ -117,22 +117,22 @@ WSGI_APPLICATION = 'insighta.wsgi.application'
 #     )
 # }
 
-db_url = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_PUBLIC_URL')
-
-DATABASES = {
-    'default': dj_database_url.config(default=db_url)
-}
+# db_url = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_PUBLIC_URL')
 
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'HNG',
-#         'USER': 'postgres',
-#         'PASSWORD': '13ghost',
-#         'HOST': 'localhost',  # Or the IP address of your DB server
-#         'PORT': '5432',       # Default PostgreSQL port
-#     }
+#     'default': dj_database_url.config(default=db_url)
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'HNG',
+        'USER': 'postgres',
+        'PASSWORD': '13ghost',
+        'HOST': 'localhost',  # Or the IP address of your DB server
+        'PORT': '5432',       # Default PostgreSQL port
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -201,7 +201,8 @@ def get_env_variable(var_name):
 
 GITHUB_CLIENT_ID =  'Ov23lisdKc9UuxcnkzuH' #get_env_variable('GITHUB_CLIENT_ID')
 GITHUB_CLIENT_SECRET = '09fbfbc640d68c5fb7eb1cee15eecfd51064103b' #get_env_variable('GITHUB_CLIENT_SECRET')
-GITHUB_REDIRECT_URI = 'https://hng-stage3-production.up.railway.app/auth/github/callback' #get_env_variable('GITHUB_REDIRECT_URI')
+GITHUB_REDIRECT_URI = 'https://hng-stage3-production.up.railway.app/auth/github/callback' #'http://127.0.0.1:8000/auth/github/callback/' #'https://hng-stage3-production.up.railway.app/auth/github/callback' ##get_env_variable('GITHUB_REDIRECT_URI')
+FRONTEND_URL = 'https://hng-stage3-production.up.railway.app/api/profiles/' #get_env_variable('FRONTEND_URL')
 
 # Safety Check: If these are missing, the server will log exactly which one
 if not GITHUB_CLIENT_ID:
