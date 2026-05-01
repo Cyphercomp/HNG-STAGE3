@@ -202,7 +202,7 @@ def get_env_variable(var_name):
 GITHUB_CLIENT_ID =  'Ov23lisdKc9UuxcnkzuH' #get_env_variable('GITHUB_CLIENT_ID')
 GITHUB_CLIENT_SECRET = '09fbfbc640d68c5fb7eb1cee15eecfd51064103b' #get_env_variable('GITHUB_CLIENT_SECRET')
 GITHUB_REDIRECT_URI = 'https://hng-stage3-production.up.railway.app/auth/github/callback' #'http://127.0.0.1:8000/auth/github/callback/' #'https://hng-stage3-production.up.railway.app/auth/github/callback' ##get_env_variable('GITHUB_REDIRECT_URI')
-FRONTEND_URL = 'https://hng-stage3-production.up.railway.app/api/profiles/' #get_env_variable('FRONTEND_URL')
+FRONTEND_URL = 'https://hng-stage3-production.up.railway.app/auth/github/callback' #get_env_variable('FRONTEND_URL')
 
 # Safety Check: If these are missing, the server will log exactly which one
 if not GITHUB_CLIENT_ID:
